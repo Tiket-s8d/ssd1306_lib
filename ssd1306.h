@@ -1,7 +1,12 @@
 #include "stm32f1xx_hal.h"
+#include "font.h"
 
 extern I2C_HandleTypeDef hi2c1;
 
+typedef struct {
+	uint16_t x;
+	uint16_t y;
+}ssd1306_Cursor;
 
 
 #define ssd1306_port hi2c1
@@ -68,7 +73,7 @@ typedef enum {
 #define OFF_RE_MAP 0xA0
 #define PINS_CONF 0xDA
 #define Vcomh 0xDB
-
+char ssd1306_DrawChar(char ch, FontDef Font, COLORS color);
 void ssd1306_WriteCommand(uint8_t cmd);
 void ssd1306_WriteData(uint8_t* buffer, size_t buffer_size);
 void ssd1306_SetDisplay(const uint8_t set);

@@ -1,7 +1,7 @@
 #include "ssd1306.h"
 
 static uint8_t SSD1306_Buffer[BUFFER_SIZE];
-
+static ssd1306_Cursor cursor;
 
 void ssd1306_WriteCommand(uint8_t cmd){
 	 HAL_I2C_Mem_Write(&ssd1306_port, ssd1306_addr, 0x00, 1, &cmd, 1, HAL_MAX_DELAY);
@@ -20,52 +20,53 @@ void ssd1306_SetDisplay(const uint8_t set){
 }
 
 void ssd1306_Init(){
+	cursor.x = 50;
+	cursor.y = 20;
 	HAL_Delay(200);
 	ssd1306_SetDisplay(0);
-	ssd1306_WriteCommand(MAM); //Set Memory Addressing Mode
-	ssd1306_WriteCommand(HORIZONTAL); // 00b,Horizontal Addressing Mode; 01b,Vertical Addressing Mode;
-	                                // 10b,Page Addressing Mode (RESET); 11b,Invalid
+	ssd1306_WriteCommand(MAM);
+	ssd1306_WriteCommand(HORIZONTAL);
 
-	ssd1306_WriteCommand(PAGE_START); //Set Page Start Address for Page Addressing Mode,0-7
-    ssd1306_WriteCommand(COM_SCAN); //Set COM Output Scan Direction
-    ssd1306_WriteCommand(LOW_COLUMN); //---set low column address
-    ssd1306_WriteCommand(HIGH_COLUMN); //---set high column address
+	ssd1306_WriteCommand(PAGE_START);
+    ssd1306_WriteCommand(COM_SCAN);
+    ssd1306_WriteCommand(LOW_COLUMN);
+    ssd1306_WriteCommand(HIGH_COLUMN);
 
-    ssd1306_WriteCommand(START_LINE); //--set start line address - CHECK
+    ssd1306_WriteCommand(START_LINE);
 
     ssd1306_SetContrast(0xFF);
 
-    ssd1306_WriteCommand(ON_RE_MAP); //--set segment re-map 0 to 127 - CHECK
-    ssd1306_WriteCommand(NORMAL_DISPLAY); //--set normal color
+    ssd1306_WriteCommand(ON_RE_MAP);
+    ssd1306_WriteCommand(NORMAL_DISPLAY);
 
-    ssd1306_WriteCommand(MUL_RAT); //--set multiplex ratio(1 to 64) - CHECK
-    ssd1306_WriteCommand(0x3F); //
+    ssd1306_WriteCommand(MUL_RAT);
+    ssd1306_WriteCommand(0x3F);
 
-    ssd1306_WriteCommand(ENTIRE_1); //0xa4,Output follows RAM content;0xa5,Output ignores RAM content
+    ssd1306_WriteCommand(ENTIRE_1);
 
-    ssd1306_WriteCommand(DISPLAY_OFFSET); //-set display offset - CHECK
-    ssd1306_WriteCommand(0x00); //-not offset
+    ssd1306_WriteCommand(DISPLAY_OFFSET);
+    ssd1306_WriteCommand(0x00);
 
-    ssd1306_WriteCommand(CLOCK); //--set display clock divide ratio/oscillator frequency
-    ssd1306_WriteCommand(0xF0); //--set divide ratio
+    ssd1306_WriteCommand(CLOCK);
+    ssd1306_WriteCommand(0xF0);
 
-    ssd1306_WriteCommand(PRE_CHARG); //--set pre-charge period
-    ssd1306_WriteCommand(PAGE_ADDR); //
+    ssd1306_WriteCommand(PRE_CHARG);
+    ssd1306_WriteCommand(PAGE_ADDR);
 
-    ssd1306_WriteCommand(PINS_CONF); //--set com pins hardware configuration - CHECK
+    ssd1306_WriteCommand(PINS_CONF);
     ssd1306_WriteCommand(0x12);
 
-    ssd1306_WriteCommand(Vcomh); //--set vcomh
-    ssd1306_WriteCommand(0x20); //0x20,0.77xVcc
+    ssd1306_WriteCommand(Vcomh);
+    ssd1306_WriteCommand(0x20);
 
-    ssd1306_WriteCommand(0x8D); //--set DC-DC enable
-    ssd1306_WriteCommand(0x14); //
-    ssd1306_SetDisplayOn(1); //--turn on SSD1306 panel
+    ssd1306_WriteCommand(0x8D);
+    ssd1306_WriteCommand(0x14);
+    ssd1306_SetDisplayOn(1);
 
-    // Clear screen
+
     ssd1306_Fill(BLACK);
 
-    // Flush buffer to screen
+
     ssd1306_UpdateScrean();
 
 
@@ -150,7 +151,7 @@ void ssd1306_DrawPixel(uint8_t x, uint8_t y, COLORS color){
 	if(color == WHITE){
 		SSD1306_Buffer[x+(y/8)*ssd1306_WIDTH] |= 1<<(y%8);
 	}else{
-		SSD1306_Buffer[x+(y/8)*ssd1306_WIDTH] &= !(1 << (y % 8));
+		SSD1306_Buffer[x+(y/8)*ssd1306_WIDTH] &= ~(1 << (y % 8));
 	}
 
 }
@@ -189,4 +190,19 @@ void ssd1306_DrawLine(uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2, uint8_t co
 	}
 }
 
+char ssd1306_DrawChar(char ch, FontDef Font, COLORS color){
 
+	uint32_t b;
+	for(uint32_t i = 0; i< Font.FontHeight;i++){
+		 b = Font.data[(ch-32)*Font.FontHeight+i];
+		for(uint32_t j = 0 ; j < Font.FontWidth; j++){
+			if((b << j) &0x8000){
+				ssd1306_DrawPixel((cursor.x+j), (cursor.y+i), color);
+			}else{
+				ssd1306_DrawPixel((cursor.x+j), (cursor.y+i), !color);
+			}
+		}
+	}
+	cursor.x += Font.FontWidth;
+	return ch;
+}
