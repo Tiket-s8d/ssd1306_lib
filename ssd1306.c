@@ -206,3 +206,19 @@ char ssd1306_DrawChar(char ch, FontDef Font, COLORS color){
 	cursor.x += Font.FontWidth;
 	return ch;
 }
+
+char ssd1306_DrawString(char *str, FontDef Font, COLORS color){
+	while(*str){
+		if(ssd1306_DrawChar(*str, Font, color)!= *str){
+			return 0;
+		}
+		str++;
+
+	}
+
+
+}
+
+
+
+
