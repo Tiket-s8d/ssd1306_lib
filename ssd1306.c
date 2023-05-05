@@ -20,13 +20,12 @@ void ssd1306_SetDisplay(const uint8_t set){
 }
 
 void ssd1306_Init(){
-	cursor.x = 50;
-	cursor.y = 20;
+	cursor.x = 0;
+	cursor.y = 0;
 	HAL_Delay(200);
 	ssd1306_SetDisplay(0);
 	ssd1306_WriteCommand(MAM);
 	ssd1306_WriteCommand(HORIZONTAL);
-
 	ssd1306_WriteCommand(PAGE_START);
     ssd1306_WriteCommand(COM_SCAN);
     ssd1306_WriteCommand(LOW_COLUMN);
@@ -36,7 +35,6 @@ void ssd1306_Init(){
 
     ssd1306_SetContrast(0xFF);
 
-    ssd1306_WriteCommand(ON_RE_MAP);
     ssd1306_WriteCommand(NORMAL_DISPLAY);
 
     ssd1306_WriteCommand(MUL_RAT);
@@ -82,6 +80,10 @@ void ssd1306_UpdateScrean(){
 	}
 }
 
+void ssd1306_SetCursor(uint8_t x, uint8_t y){
+	cursor.x = x;
+	cursor.y = y;
+}
 
 void ssd1306_SetDisplayOn(const uint8_t on) {
     uint8_t value;
